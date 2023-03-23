@@ -1,7 +1,7 @@
 import { Helmet } from 'react-helmet-async';
 import { filter } from 'lodash';
 import { sentenceCase } from 'change-case';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 // @mui
 import {
   Card,
@@ -73,8 +73,35 @@ function applySortFilter(array, comparator, query) {
   return stabilizedThis.map((el) => el[0]);
 }
 
+
+function useUserData(users) {
+  const [data, setData] = useState(users);
+
+  function deleteUser(userrow) {
+    const otherUsers = data.filter((value) => value.id !== userrow.id)
+    console.log(userrow, otherUsers)
+    setData(otherUsers);
+  }
+
+  function editUser(userrow) {
+    const otherUsers = data.filter((value) => value.id !== userrow.id)
+    console.log(userrow, otherUsers)
+    setData(otherUsers);
+  }
+
+  return [data, deleteUser, editUser]
+}
+
+
 export default function UserPage() {
+  const [userList, deleteUser, editUser] = useUserData(USERLIST);
   const [open, setOpen] = useState(null);
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    setOpen(null);
+    setUser(null);
+  }, [userList])
 
   const [page, setPage] = useState(0);
 
@@ -88,13 +115,23 @@ export default function UserPage() {
 
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
-  const handleOpenMenu = (event) => {
+  const handleOpenMenu = (event, userrow) => {
+    console.log(event.currentTarget, userrow)
     setOpen(event.currentTarget);
+    setUser(userrow)
   };
 
   const handleCloseMenu = () => {
+    console.log("Close Menu")
     setOpen(null);
+    setUser(null);
   };
+
+  const handleUserDelete = () => {
+    setOpen(null);
+    setUser(null);
+    deleteUser(user)
+  }
 
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === 'asc';
@@ -104,7 +141,7 @@ export default function UserPage() {
 
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
-      const newSelecteds = USERLIST.map((n) => n.name);
+      const newSelecteds = userList.map((n) => n.name);
       setSelected(newSelecteds);
       return;
     }
@@ -140,9 +177,9 @@ export default function UserPage() {
     setFilterName(event.target.value);
   };
 
-  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - USERLIST.length) : 0;
+  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - userList.length) : 0;
 
-  const filteredUsers = applySortFilter(USERLIST, getComparator(order, orderBy), filterName);
+  const filteredUsers = applySortFilter(userList, getComparator(order, orderBy), filterName);
 
   const isNotFound = !filteredUsers.length && !!filterName;
 
@@ -172,7 +209,7 @@ export default function UserPage() {
                   order={order}
                   orderBy={orderBy}
                   headLabel={TABLE_HEAD}
-                  rowCount={USERLIST.length}
+                  rowCount={userList.length}
                   numSelected={selected.length}
                   onRequestSort={handleRequestSort}
                   onSelectAllClick={handleSelectAllClick}
@@ -208,7 +245,7 @@ export default function UserPage() {
                         </TableCell>
 
                         <TableCell align="right">
-                          <IconButton size="large" color="inherit" onClick={handleOpenMenu}>
+                          <IconButton size="large" color="inherit" onClick={(e) => handleOpenMenu(e, row)}>
                             <Iconify icon={'eva:more-vertical-fill'} />
                           </IconButton>
                         </TableCell>
@@ -252,7 +289,7 @@ export default function UserPage() {
           <TablePagination
             rowsPerPageOptions={[5, 10, 25]}
             component="div"
-            count={USERLIST.length}
+            count={userList.length}
             rowsPerPage={rowsPerPage}
             page={page}
             onPageChange={handleChangePage}
@@ -284,7 +321,7 @@ export default function UserPage() {
           Edit
         </MenuItem>
 
-        <MenuItem sx={{ color: 'error.main' }}>
+        <MenuItem sx={{ color: 'error.main' }} onClick={handleUserDelete}>
           <Iconify icon={'eva:trash-2-outline'} sx={{ mr: 2 }} />
           Delete
         </MenuItem>
