@@ -1,7 +1,8 @@
 import { Helmet } from 'react-helmet-async';
 import { filter } from 'lodash';
+import PropTypes from 'prop-types';
 import { sentenceCase } from 'change-case';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 // @mui
 import {
   Card,
@@ -21,6 +22,14 @@ import {
   IconButton,
   TableContainer,
   TablePagination,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  RadioGroup,
+  FormControlLabel,
+  Radio,
+  DialogActions,
+  TextField,
 } from '@mui/material';
 // components
 import Label from '../components/label';
@@ -43,6 +52,86 @@ const TABLE_HEAD = [
 ];
 
 // ----------------------------------------------------------------------
+
+
+function ConfirmationDialogRaw(props) {
+  const { onClose, user, open, ...other } = props;
+  const [value, setValue] = useState(user);
+  const radioGroupRef = useRef(null);
+
+  useEffect(()=>{
+    console.log("User",user)
+  })
+  useEffect(() => {
+    if (!open) {
+      setValue(user);
+    }
+  }, [user, open]);
+
+  const handleEntering = () => {
+    if (radioGroupRef.current != null) {
+      radioGroupRef.current.focus();
+    }
+  };
+
+  const handleCancel = () => {
+    onClose();
+  };
+
+  const handleOk = () => {
+    onClose(value);
+  };
+
+  const handleChange = (event) => {
+    setValue(event.target.value);
+  };
+
+  return (
+    <Dialog
+      sx={{ '& .MuiDialog-paper': { width: '80%', maxHeight: 435 } }}
+      maxWidth="xs"
+      TransitionProps={{ onEntering: handleEntering }}
+      open={open}
+      {...other}
+    >
+      <DialogTitle>Edit User</DialogTitle>
+      <DialogContent dividers>
+        <TextField
+          required
+          fullWidth
+          sx={{ my: 1 }}
+          id="outlined-required"
+          label="Name"
+          defaultValue="Hello World"
+          placeholder='Please enter name'
+        />
+        <TextField
+          required
+          fullWidth
+          sx={{ my: 1 }}
+          id="outlined-required"
+          label="Company"
+          defaultValue="Hello World"
+          placeholder='Please enter company name'
+        />
+      </DialogContent>
+      <DialogActions>
+        <Button autoFocus onClick={handleCancel}>
+          Cancel
+        </Button>
+        <Button onClick={handleOk} variant="contained">Update</Button>
+      </DialogActions>
+    </Dialog>
+  );
+}
+
+ConfirmationDialogRaw.propTypes = {
+  onClose: PropTypes.func.isRequired,
+  open: PropTypes.bool.isRequired,
+  user: PropTypes.string.isRequired,
+};
+
+
 
 function descendingComparator(a, b, orderBy) {
   if (b[orderBy] < a[orderBy]) {
@@ -97,6 +186,19 @@ export default function UserPage() {
   const [userList, deleteUser, editUser] = useUserData(USERLIST);
   const [open, setOpen] = useState(null);
   const [user, setUser] = useState(null);
+
+  const [openEditModal, setOpenEditModal] = useState(false);
+
+  const handleUserEdit = () => {
+    setOpenEditModal(true);
+  };
+
+  const handleClose = (newValue) => {
+    setOpenEditModal(false);
+  };
+
+
+
 
   useEffect(() => {
     setOpen(null);
@@ -316,7 +418,7 @@ export default function UserPage() {
           },
         }}
       >
-        <MenuItem>
+        <MenuItem onClick={handleUserEdit}>
           <Iconify icon={'eva:edit-fill'} sx={{ mr: 2 }} />
           Edit
         </MenuItem>
@@ -326,6 +428,14 @@ export default function UserPage() {
           Delete
         </MenuItem>
       </Popover>
+
+      <ConfirmationDialogRaw
+        id="ringtone-menu"
+        keepMounted
+        open={openEditModal}
+        onClose={handleClose}
+        user={user}
+      />
     </>
   );
 }
