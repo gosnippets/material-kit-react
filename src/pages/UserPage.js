@@ -434,3 +434,6 @@ export default function UserPage() {
     </>
   );
 }
+
+// Add User : Create new Dialog modal to add new user
+// Edit User: Add all fields in the Dialog modal
