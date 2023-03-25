@@ -2,7 +2,7 @@ import { Helmet } from 'react-helmet-async';
 import { filter } from 'lodash';
 import PropTypes from 'prop-types';
 import { sentenceCase } from 'change-case';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 // @mui
 import {
   Card,
@@ -25,9 +25,6 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  RadioGroup,
-  FormControlLabel,
-  Radio,
   DialogActions,
   TextField,
 } from '@mui/material';
@@ -54,43 +51,35 @@ const TABLE_HEAD = [
 // ----------------------------------------------------------------------
 
 
-function ConfirmationDialogRaw(props) {
-  const { onClose, user, open, ...other } = props;
+function EditUserDialogRaw(props) {
+  const { onClose, user, editUser, open, ...other } = props;
   const [value, setValue] = useState(user);
-  const radioGroupRef = useRef(null);
 
-  useEffect(()=>{
-    console.log("User",user)
-  })
   useEffect(() => {
-    if (!open) {
-      setValue(user);
-    }
-  }, [user, open]);
-
-  const handleEntering = () => {
-    if (radioGroupRef.current != null) {
-      radioGroupRef.current.focus();
-    }
-  };
+    console.log("User Details", value)
+  }, [value])
 
   const handleCancel = () => {
     onClose();
   };
 
   const handleOk = () => {
-    onClose(value);
+    editUser(value)
+    onClose();
   };
 
-  const handleChange = (event) => {
-    setValue(event.target.value);
+  const handleNameChange = (event) => {
+    setValue({ ...value, name: event.target.value });
+  };
+
+  const handleCompanyChange = (event) => {
+    setValue({ ...value, company: event.target.value });
   };
 
   return (
     <Dialog
       sx={{ '& .MuiDialog-paper': { width: '80%', maxHeight: 435 } }}
       maxWidth="xs"
-      TransitionProps={{ onEntering: handleEntering }}
       open={open}
       {...other}
     >
@@ -102,7 +91,8 @@ function ConfirmationDialogRaw(props) {
           sx={{ my: 1 }}
           id="outlined-required"
           label="Name"
-          defaultValue="Hello World"
+          onChange={handleNameChange}
+          defaultValue={value.name}
           placeholder='Please enter name'
         />
         <TextField
@@ -111,24 +101,24 @@ function ConfirmationDialogRaw(props) {
           sx={{ my: 1 }}
           id="outlined-required"
           label="Company"
-          defaultValue="Hello World"
+          onChange={handleCompanyChange}
+          defaultValue={value.company}
           placeholder='Please enter company name'
         />
       </DialogContent>
       <DialogActions>
-        <Button autoFocus onClick={handleCancel}>
-          Cancel
-        </Button>
+        <Button autoFocus onClick={handleCancel}>Cancel</Button>
         <Button onClick={handleOk} variant="contained">Update</Button>
       </DialogActions>
     </Dialog>
   );
 }
 
-ConfirmationDialogRaw.propTypes = {
+EditUserDialogRaw.propTypes = {
   onClose: PropTypes.func.isRequired,
   open: PropTypes.bool.isRequired,
-  user: PropTypes.string.isRequired,
+  user: PropTypes.object.isRequired,
+  editUser: PropTypes.func.isRequired
 };
 
 
@@ -173,8 +163,10 @@ function useUserData(users) {
   }
 
   function editUser(userrow) {
-    const otherUsers = data.filter((value) => value.id !== userrow.id)
-    console.log(userrow, otherUsers)
+    const otherUsers = data.map((value) => {
+      if (value.id === userrow.id) return userrow;
+      return value
+    })
     setData(otherUsers);
   }
 
@@ -191,9 +183,10 @@ export default function UserPage() {
 
   const handleUserEdit = () => {
     setOpenEditModal(true);
+    setOpen(null);
   };
 
-  const handleClose = (newValue) => {
+  const handleClose = () => {
     setOpenEditModal(false);
   };
 
@@ -429,13 +422,15 @@ export default function UserPage() {
         </MenuItem>
       </Popover>
 
-      <ConfirmationDialogRaw
-        id="ringtone-menu"
-        keepMounted
-        open={openEditModal}
-        onClose={handleClose}
-        user={user}
-      />
+      {user && (
+        <EditUserDialogRaw
+          keepMounted
+          open={openEditModal}
+          onClose={handleClose}
+          user={user}
+          editUser={editUser}
+        />
+      )}
     </>
   );
 }
