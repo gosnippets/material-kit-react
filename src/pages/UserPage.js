@@ -27,6 +27,9 @@ import {
   DialogContent,
   DialogActions,
   TextField,
+  FormControl,
+  InputLabel,
+  Select,
 } from '@mui/material';
 // components
 import Label from '../components/label';
@@ -50,7 +53,18 @@ const TABLE_HEAD = [
 
 // ----------------------------------------------------------------------
 
-
+const roleList = [
+  'Leader',
+  'Hr Manager',
+  'UI Designer',
+  'UX Designer',
+  'UI/UX Designer',
+  'Project Manager',
+  'Backend Developer',
+  'Full Stack Designer',
+  'Front End Developer',
+  'Full Stack Developer',
+]
 function EditUserDialogRaw(props) {
   const { onClose, user, editUser, open, ...other } = props;
   const [value, setValue] = useState(user);
@@ -74,6 +88,19 @@ function EditUserDialogRaw(props) {
 
   const handleCompanyChange = (event) => {
     setValue({ ...value, company: event.target.value });
+  };
+
+  const handleRoleChange = (event) => {
+    console.log("Role",event.target.value )
+    setValue({ ...value, role: event.target.value });
+  };
+
+  const handleVarifiedChange = (event) => {
+    setValue({ ...value, isVerified: event.target.value });
+  };
+
+  const handleStatusChange = (event) => {
+    setValue({ ...value, status: event.target.value });
   };
 
   return (
@@ -105,6 +132,53 @@ function EditUserDialogRaw(props) {
           defaultValue={value.company}
           placeholder='Please enter company name'
         />
+
+        <FormControl fullWidth sx={{ my: 1 }}>
+          <InputLabel id="demo-simple-select-label">Role</InputLabel>
+          <Select
+            labelId="demo-simple-select-label"
+            id="demo-simple-select"
+            value={value.role}
+            label="Role"
+            fullWidth
+            onChange={handleRoleChange}
+          >
+            {roleList && roleList.map((value, index) => (
+              <MenuItem key={index} value={value}>{value}</MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
+        <FormControl fullWidth sx={{ my: 1 }}>
+          <InputLabel id="demo-simple-select-label">Is Varified</InputLabel>
+          <Select
+            labelId="demo-simple-select-label"
+            id="isVarified"
+            value={value.isVerified}
+            label="Is Varified"
+            fullWidth
+            onChange={handleVarifiedChange}
+          >
+            <MenuItem value={"true"}>Yes</MenuItem>
+            <MenuItem value={"false"}>No</MenuItem>
+          </Select>
+        </FormControl>
+
+        <FormControl fullWidth sx={{ my: 1 }}>
+          <InputLabel id="demo-simple-select-label">Status</InputLabel>
+          <Select
+            labelId="demo-simple-select-label"
+            id="status"
+            value={value.status}
+            label="Status"
+            fullWidth
+            onChange={handleStatusChange}
+          >
+            <MenuItem value={"active"}>Active</MenuItem>
+            <MenuItem value={"banned"}>Banned</MenuItem>
+          </Select>
+        </FormControl>
+
       </DialogContent>
       <DialogActions>
         <Button autoFocus onClick={handleCancel}>Cancel</Button>
